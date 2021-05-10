@@ -1,0 +1,38 @@
+.cardh{
+    padding: 5px 15px;
+    background: #075E54;
+    box-shadow: 0px 0px 5px 2px #78b5b5;
+    width: 40%;
+    color: #f7fcfa;
+    border-radius: 10px;
+    text-align: center;
+    transition: .5s;
+}
+.cardh img{
+    height: 70px;
+    width: 70px;
+}
+.cardh h2{
+    margin: 0 auto;
+}
+.cardh p{
+    padding: 0px 5px;
+    font-size: 18px;
+}
+.cardh a{
+    text-decoration: none;
+    color: black;
+    padding: 10px;
+    margin-bottom: 8px;
+    background: #efe7e5;
+    border-radius: 5px;
+    display: inline-block;
+    transition: .5s;
+}
+.cardh a:hover{
+    transform: scale(0.9);
+}
+.cardh:hover{
+    background: #064d54;
+    box-shadow: 0px 0px 5px 2px #81b8b8;
+}
