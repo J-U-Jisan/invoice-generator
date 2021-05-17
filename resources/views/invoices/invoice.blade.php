@@ -2,6 +2,7 @@
 
 @push('styles')
     <link rel="stylesheet" href="{{ asset('css/invoice.css') }}">
+    <link rel="stylesheet" href="https://code.jquery.com/ui/1.11.1/themes/smoothness/jquery-ui.css" />
 @endpush
 @section('content')
     <div class="mx-5 my-2 px-2 text-white">
@@ -11,7 +12,7 @@
                 <input type="text" name="companyName" class="form-control" id="companyName" placeholder="Enter Company name">
             </div>
             <div class="col-md-4">
-                <label for="companyLogo" id="companyLogoLevel" class="form-label">Upload Logo <img id="logo" class="d-block" /></label>
+                <label for="companyLogo" id="companyLogoLevel" class="form-label">Upload Logo <img src="" id="logo" class="d-block" /></label>
                 <input type="file" name="companyLogo" class="form-control" accept="image/*" id="companyLogo"  onchange="loadFile(event)">
             </div>
             <div class="col-md-4">
@@ -84,41 +85,75 @@
                 <input type="number" name="customerPhone" class="form-control" min="0" id="customerPhone" placeholder="Enter Customer Phone Number">
             </div>
 
-            <div class="col-12">
-                <table class="table table-bordered table-success mt-3 text-center" id="productTable">
+            <div class="col-12 mt-5">
+                <div class="mb-2 clearfix">
+                    <button type="button" name="add-product" class="btn btn-secondary add-product float-end"  data-bs-toggle="modal" data-bs-target="#product_dialog">Add Product</button>
+                </div>
+                <table class="table table-responsive table-bordered table-striped table-success mt-3 text-center" id="productTable">
                     <thead>
                         <tr>
-                            <th scope="col" class="col-1">Select</th>
-                            <th scope="col" class="col-5">Description</th>
+                            <th scope="col" class="col-4">Description</th>
                             <th scope="col" class="col-2">Quantity</th>
                             <th scope="col" class="col-2">Unit Price</th>
                             <th scope="col" class="col-2">Amount</th>
+                            <th scope="col" class="col-1">Details</th>
+                            <th scope="col" class="col-1">Remove</th>
                         </tr>
                     </thead>
-                    <tbody>
-                        <tr>
-                            <td></td>
-                            <td><input type="text" name="productTitle" id="productTitle" class="form-control" placeholder="Product Title" required></td>
-                            <td><input type="text" name="productQuantity" id="productQuantity" class="form-control" placeholder="Quantity"></td>
-                            <td><input type="text" name="productUnitPrice" id="productUnitPrice" class="form-control" placeholder="Unit Price"></td>
-                            <td><input type="text" name="productAmount" id="productAmount" class="form-control" placeholder="Amount"></td>
-                        </tr>
+                    <tbody id="user_data">
+
                     </tbody>
                 </table>
-                <div>
-                    <input type="button" name="add-product" class="btn btn-secondary add-product float-end" value="Add Product">
-                    <input type="button" name="del-product" class="btn btn-danger del-product float-start" value="Delete Selected Product">
-                </div>
             </div>
             <div class="col-12 text-right">
                 <button type="submit" class="btn btn-primary">Generate Invoice</button>
             </div>
         </form>
+
+        <!-- Modal -->
+        <div class="modal fade" id="product_dialog" tabindex="-1" aria-labelledby="modalTitle" aria-hidden="true">
+            <div class="modal-dialog  modal-dialog-centered">
+                <div class="modal-content bg-green text-light">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="modalTitle">Modal title</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body row g-3">
+                        <div class="col-12">
+                            <label for="productTitle">Product Title</label>
+                            <input type="text" name="productTitle" id="productTitle" class="form-control" placeholder="Enter Product Title" required>
+                        </div>
+                        <div class="col-md-4">
+                            <label for="productQuantity">Quantity</label>
+                            <input type="text" name="productQuantity" id="productQuantity" class="form-control" placeholder="Enter Quantity">
+                        </div>
+                        <div class="col-md-4">
+                            <label for="productUnitPrice">Unit Price</label>
+                            <input type="text" name="productUnitPrice" id="productUnitPrice" class="form-control" placeholder="Enter Unit Price">
+                        </div>
+                        <div class="col-md-4">
+                            <label for="productAmount">Amount</label>
+                            <input type="text" name="productAmount" id="productAmount" class="form-control" placeholder="Enter Amount" required>
+                        </div>
+                        <div class="text-center">
+
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <input type="hidden" name="row_id" id="hidden_row_id" />
+                        <button type="button" name="save" id="save" class="btn btn-light align-content-between" data-bs-dismiss="modal">Save</button>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 @endsection
 
 @push('script')
-    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+    <script src="https://code.jquery.com/jquery-1.11.1.min.js"></script>
+
+    <script src="https://code.jquery.com/ui/1.11.1/jquery-ui.min.js"></script>
+
     <script>
         //Logo
         var loadFile = function(event) {
@@ -126,41 +161,87 @@
             image.src = URL.createObjectURL(event.target.files[0]);
             document.getElementById('companyLogo').style.display = "none";
         };
+        //Product add-delete
+        $(document).ready(function (){
+            var count = 0;
 
-        //Product add & delete
-        $(document).ready(function(){
-
-            //Product addition
-            $(".add-product").click(function(){
-                var title = $("#productTitle").val();
-                var quantity = $("#productQuantity").val();
-                var unitPrice = $("#productUnitPrice").val();
-                var amount = $("#productAmount").val();
-                //var markup = "<tr><td><input type='checkbox' class='form-check-input' name='record'></td><td>" + title + "</td><td>" + quantity + "</td><td>" + unitPrice + "</td><td>" + amount + "</td></tr>";
-
-                var table = document.getElementById("productTable");
-                var lastRowIndex = table.rows.length-1;
-               // console.log(lastRowIndex);
-                var row = table.insertRow(lastRowIndex);
-                var cell1 = row.insertCell(0);
-                var cell2 = row.insertCell(1);
-                var cell3 = row.insertCell(2);
-                var cell4 = row.insertCell(3);
-                var cell5 = row.insertCell(4);
-                cell1.innerHTML = "<input type='checkbox' class='form-check-input' name='record'>";
-                cell2.innerHTML = title;
-                cell3.innerHTML = quantity;
-                cell4.innerHTML = unitPrice;
-                cell5.innerHTML = amount;
+            $('.add-product').click(function (){
+               console.log('Add Product');
+               $('#productTitle').val('');
+               $('#productQuantity').val('');
+               $('#productUnitPrice').val('');
+               $('#productAmount').val('');
+               $('#save').text('Save');
             });
 
-            // Find and remove selected table rows
-            $(".del-product").click(function(){
-                $("table tbody").find('input[name="record"]').each(function(){
-                    if($(this).is(":checked")){
-                        $(this).parents("tr").remove();
-                    }
-                });
+            $('#save').click(function (){
+               var productTitle = '';
+               var productQuantity = '';
+               var productUnitPrice = '';
+               var productAmount = '';
+
+               productTitle = $('#productTitle').val();
+
+               productQuantity = $('#productQuantity').val();
+
+               productUnitPrice = $('#productUnitPrice').val();
+
+               productAmount = $('#productAmount').val();
+
+               if($('#save').text() == 'Save'){
+                   count = count + 1;
+                   console.log('Add = ',count);
+                   output = '<tr id="row_'+count+'">';
+                   output += '<td>' + productTitle + '<input type="hidden" name="hidden_product_title[]" id="productTitle'+count+'" class="productTitle" value="'+productTitle+'" required /></td>';
+                   output += '<td>' + productQuantity + '<input type="hidden" name="hidden_product_quantity[]" id="productQuantity'+count+'" value="'+productQuantity+'"/></td>';
+                   output += '<td>' + productUnitPrice + '<input type="hidden" name="hidden_product_unit_price[]" id="productUnitPrice'+count+'" value="'+productUnitPrice+'"/></td>';
+                   output += '<td>' + productAmount + '<input type="hidden" name="hidden_product_amount[]" id="productAmount'+count+'" value="'+productAmount+'" required /></td>';
+                   output += '<td><button type="button" name="view_details" class="btn btn-warning btn-xs view_details" id="'+count+'" data-bs-toggle="modal" data-bs-target="#product_dialog">View</button></td>';
+                   output += '<td><button type="button" name="remove_details" class="btn btn-danger btn-xs remove_details" id="'+count+'">Remove</button></td>';
+                   output += '</tr>';
+                   $('#user_data').append(output);
+               }
+               else{
+                   var row_id = $('#hidden_row_id').val();
+                   output = '<td>' + productTitle + '<input type="hidden" name="hidden_product_title[]" id="productTitle'+row_id+'" class="productTitle" value="'+productTitle+'"/></td>';
+                   output += '<td>' + productQuantity + '<input type="hidden" name="hidden_product_quantity[]" id="productQuantity'+row_id+'" value="'+productQuantity+'"/></td>';
+                   output += '<td>' + productUnitPrice + '<input type="hidden" name="hidden_product_unit_price[]" id="productUnitPrice'+row_id+'" value="'+productUnitPrice+'"/></td>';
+                   output += '<td>' + productAmount + '<input type="hidden" name="hidden_product_amount[]" id="productAmount'+row_id+'" value="'+productAmount+'"/></td>';
+                   output += '<td><button type="button" name="view_details" class="btn btn-warning btn-xs view_details" id="'+row_id+'" data-bs-toggle="modal" data-bs-target="#product_dialog">View</button></td>';
+                   output += '<td><button type="button" name="remove_details" class="btn btn-danger btn-xs remove_details" id="'+row_id+'">Remove</button></td>';
+                   $('#row_'+row_id+'').html(output);
+                   console.log('Update = ',row_id);
+               }
+            });
+
+            $(document).on('click', '.view_details', function(){
+                console.log('Edit Product')
+                var row_id = $(this).attr("id");
+                var productTitle = $('#productTitle'+row_id+'').val();
+                var productQuantity = $('#productQuantity'+row_id+'').val();
+                var productUnitPrice = $('#productUnitPrice'+row_id+'').val();
+                var productAmount = $('#productAmount'+row_id+'').val();
+
+                $('#productTitle').val(productTitle);
+                $('#productQuantity').val(productQuantity);
+                $('#productUnitPrice').val(productUnitPrice);
+                $('#productAmount').val(productAmount);
+
+                $('#save').text('Edit');
+                $('#hidden_row_id').val(row_id);
+            });
+
+            $(document).on('click', '.remove_details', function(){
+                console.log('Remove Product')
+                var row_id = $(this).attr("id");
+                if(confirm("Are you sure you want to remove this row data?"))
+                {
+                    $('#row_'+row_id+'').remove();
+                }
+                else
+                {
+                    return false;
+                }
             });
         });
     </script>

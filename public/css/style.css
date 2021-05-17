@@ -1,6 +1,16 @@
+body{
+    background-color: #46a99d !important;
+}
+.bg-green{
+    background-color: #46a99d !important;
+}
 .navigation-bar{
     background: #075E54;
 }
 .login-div{
     text-align: right;
+}
+.card-body{
+    min-height: 1px !important;
+    padding: 1.25rem !important;
 }
