@@ -13,6 +13,10 @@ class invoiceController extends Controller
     {
         return view('invoices.invoice');
     }
+    public function store(Request $request)
+    {
+
+    }
     public function show(Request $request)
     {
         $client = new Party([

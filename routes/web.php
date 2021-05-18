@@ -25,7 +25,7 @@ Route::group(['middleware' => ['auth']], function (){
     Route::get('/profile', 'Profile\ProfileController@index')->name('profile');
     Route::get('/dashboard', 'Profile\DashboardController@index')->name('dashboard');
 
-    Route::post('/invoice-gen', 'invoiceController@show')->name('invoice-gen');
+    Route::post('/invoice-gen', 'invoiceController@store')->name('invoice-gen');
     Route::get('/invoice','invoiceController@index')->name('invoice');
 });
 

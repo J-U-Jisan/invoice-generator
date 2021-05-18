@@ -15,6 +15,15 @@ class CreateCustomersTable extends Migration
     {
         Schema::create('customers', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('company_id')
+                ->constrained('companies')
+                ->onUpdate('cascade')
+                ->onDelete('cascade');
+            $table->string('customerName')->nullable();
+            $table->date('date');
+            $table->string('currency');
+            $table->string('customerAddress')->nullable();
+            $table->string('customerPhone')->nullable();
             $table->timestamps();
         });
     }

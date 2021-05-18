@@ -6,10 +6,11 @@
 @endpush
 @section('content')
     <div class="mx-5 my-2 px-2 text-white">
-        <form action="{{ route('invoice-gen') }}" method="POST" class="row g-3">
+        <form action="{{ route('invoice-gen') }}" method="POST" class="row g-3" id="invoice_form">
+            @csrf
             <div class="col-md-8">
                 <label for="companyName" class="form-label">Company Name</label>
-                <input type="text" name="companyName" class="form-control" id="companyName" placeholder="Enter Company name">
+                <input type="text" name="companyName" class="form-control" id="companyName" placeholder="Enter Company name" required>
             </div>
             <div class="col-md-4">
                 <label for="companyLogo" id="companyLogoLevel" class="form-label">Upload Logo <img src="" id="logo" class="d-block" /></label>
@@ -33,11 +34,11 @@
             </div>
             <div class="col-6 col-md-2">
                 <label for="date" class="form-label">Date</label>
-                <input type="date" name="date" class="form-control" id="date" >
+                <input type="date" name="date" class="form-control" id="date" required>
             </div>
             <div class="col-6 col-md-2">
                 <label for="currencyInput" class="form-label">Select Currency</label>
-                <input name="currency" class="form-control" list="currencyOptions" id="currencyInput" placeholder="Type to search...">
+                <input name="currency" class="form-control" list="currencyOptions" id="currencyInput" placeholder="Type to search..." required>
                 <datalist id="currencyOptions">
                     <option value="USD (US$)">
                     <option value="EUR (€)">
@@ -100,7 +101,7 @@
                             <th scope="col" class="col-1">Remove</th>
                         </tr>
                     </thead>
-                    <tbody id="user_data">
+                    <tbody id="product_data">
 
                     </tbody>
                 </table>
@@ -115,13 +116,14 @@
             <div class="modal-dialog  modal-dialog-centered">
                 <div class="modal-content bg-green text-light">
                     <div class="modal-header">
-                        <h5 class="modal-title" id="modalTitle">Modal title</h5>
+                        <h5 class="modal-title" id="modalTitle">Add Product</h5>
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
                     <div class="modal-body row g-3">
                         <div class="col-12">
                             <label for="productTitle">Product Title</label>
                             <input type="text" name="productTitle" id="productTitle" class="form-control" placeholder="Enter Product Title" required>
+                            <span id="error_product_title" style="color: #f7c6c6;"></span>
                         </div>
                         <div class="col-md-4">
                             <label for="productQuantity">Quantity</label>
@@ -134,6 +136,7 @@
                         <div class="col-md-4">
                             <label for="productAmount">Amount</label>
                             <input type="text" name="productAmount" id="productAmount" class="form-control" placeholder="Enter Amount" required>
+                            <span id="error_product_amount" style="color: #f7c6c6;"></span>
                         </div>
                         <div class="text-center">
 
@@ -141,7 +144,7 @@
                     </div>
                     <div class="modal-footer">
                         <input type="hidden" name="row_id" id="hidden_row_id" />
-                        <button type="button" name="save" id="save" class="btn btn-light align-content-between" data-bs-dismiss="modal">Save</button>
+                        <button type="button" name="save" id="save" class="btn btn-light align-content-between" >Save</button>
                     </div>
                 </div>
             </div>
@@ -168,53 +171,96 @@
             $('.add-product').click(function (){
                console.log('Add Product');
                $('#productTitle').val('');
+               $('#error_product_title').text('');
                $('#productQuantity').val('');
                $('#productUnitPrice').val('');
                $('#productAmount').val('');
+               $('#error_product_amount').text('');
+               $('#productTitle').css('border-color', '');
+               $('#productAmount').css('border-color', '');
+
                $('#save').text('Save');
             });
 
             $('#save').click(function (){
+               var error_product_title = '';
+               var error_product_amount = '';
                var productTitle = '';
                var productQuantity = '';
                var productUnitPrice = '';
                var productAmount = '';
 
-               productTitle = $('#productTitle').val();
-
                productQuantity = $('#productQuantity').val();
 
                productUnitPrice = $('#productUnitPrice').val();
 
-               productAmount = $('#productAmount').val();
+                if($('#productTitle').val() == '')
+                {
+                    error_product_title = 'Product title is required';
+                    $('#error_product_title').text(error_product_title);
+                    $('#productTitle').css('border-color', '#ff0000');
+                    productTitle = '';
+                }
+                else
+                {
+                    error_product_title = '';
+                    $('#error_product_title').text(error_product_title);
+                    $('#productTitle').css('border-color', '');
+                    productTitle = $('#productTitle').val();
+                }
 
-               if($('#save').text() == 'Save'){
-                   count = count + 1;
-                   console.log('Add = ',count);
-                   output = '<tr id="row_'+count+'">';
-                   output += '<td>' + productTitle + '<input type="hidden" name="hidden_product_title[]" id="productTitle'+count+'" class="productTitle" value="'+productTitle+'" required /></td>';
-                   output += '<td>' + productQuantity + '<input type="hidden" name="hidden_product_quantity[]" id="productQuantity'+count+'" value="'+productQuantity+'"/></td>';
-                   output += '<td>' + productUnitPrice + '<input type="hidden" name="hidden_product_unit_price[]" id="productUnitPrice'+count+'" value="'+productUnitPrice+'"/></td>';
-                   output += '<td>' + productAmount + '<input type="hidden" name="hidden_product_amount[]" id="productAmount'+count+'" value="'+productAmount+'" required /></td>';
-                   output += '<td><button type="button" name="view_details" class="btn btn-warning btn-xs view_details" id="'+count+'" data-bs-toggle="modal" data-bs-target="#product_dialog">View</button></td>';
-                   output += '<td><button type="button" name="remove_details" class="btn btn-danger btn-xs remove_details" id="'+count+'">Remove</button></td>';
-                   output += '</tr>';
-                   $('#user_data').append(output);
-               }
-               else{
-                   var row_id = $('#hidden_row_id').val();
-                   output = '<td>' + productTitle + '<input type="hidden" name="hidden_product_title[]" id="productTitle'+row_id+'" class="productTitle" value="'+productTitle+'"/></td>';
-                   output += '<td>' + productQuantity + '<input type="hidden" name="hidden_product_quantity[]" id="productQuantity'+row_id+'" value="'+productQuantity+'"/></td>';
-                   output += '<td>' + productUnitPrice + '<input type="hidden" name="hidden_product_unit_price[]" id="productUnitPrice'+row_id+'" value="'+productUnitPrice+'"/></td>';
-                   output += '<td>' + productAmount + '<input type="hidden" name="hidden_product_amount[]" id="productAmount'+row_id+'" value="'+productAmount+'"/></td>';
-                   output += '<td><button type="button" name="view_details" class="btn btn-warning btn-xs view_details" id="'+row_id+'" data-bs-toggle="modal" data-bs-target="#product_dialog">View</button></td>';
-                   output += '<td><button type="button" name="remove_details" class="btn btn-danger btn-xs remove_details" id="'+row_id+'">Remove</button></td>';
-                   $('#row_'+row_id+'').html(output);
-                   console.log('Update = ',row_id);
-               }
+                if($('#productAmount').val() == '')
+                {
+                    error_product_amount = 'Amount is required';
+                    $('#error_product_amount').text(error_product_amount);
+                    $('#productAmount').css('border-color', '#ff0000');
+                    productAmount = '';
+                }
+                else
+                {
+                    error_product_amount = '';
+                    $('#error_product_amount').text(error_product_amount);
+                    $('#productAmount').css('border-color', '');
+                    productAmount = $('#productAmount').val();
+                }
+
+                if(error_product_title != '' || error_product_amount != '')
+                {
+                    return false;
+                }
+                else{
+
+                    if($('#save').text() == 'Save'){
+                        count = count + 1;
+                        console.log('Add = ',count);
+                        output = '<tr id="row_'+count+'">';
+                        output += '<td>' + productTitle + '<input type="hidden" name="hidden_product_title[]" id="productTitle'+count+'" class="productTitle" value="'+productTitle+'" required /></td>';
+                        output += '<td>' + productQuantity + '<input type="hidden" name="hidden_product_quantity[]" id="productQuantity'+count+'" value="'+productQuantity+'"/></td>';
+                        output += '<td>' + productUnitPrice + '<input type="hidden" name="hidden_product_unit_price[]" id="productUnitPrice'+count+'" value="'+productUnitPrice+'"/></td>';
+                        output += '<td>' + productAmount + '<input type="hidden" name="hidden_product_amount[]" id="productAmount'+count+'" value="'+productAmount+'" required /></td>';
+                        output += '<td><button type="button" name="view_details" class="btn btn-warning btn-xs view_details" id="'+count+'" data-bs-toggle="modal" data-bs-target="#product_dialog">View</button></td>';
+                        output += '<td><button type="button" name="remove_details" class="btn btn-danger btn-xs remove_details" id="'+count+'">Remove</button></td>';
+                        output += '</tr>';
+                        $('#product_data').append(output);
+                    }
+                    else{
+                        var row_id = $('#hidden_row_id').val();
+                        output = '<td>' + productTitle + '<input type="hidden" name="hidden_product_title[]" id="productTitle'+row_id+'" class="productTitle" value="'+productTitle+'"/></td>';
+                        output += '<td>' + productQuantity + '<input type="hidden" name="hidden_product_quantity[]" id="productQuantity'+row_id+'" value="'+productQuantity+'"/></td>';
+                        output += '<td>' + productUnitPrice + '<input type="hidden" name="hidden_product_unit_price[]" id="productUnitPrice'+row_id+'" value="'+productUnitPrice+'"/></td>';
+                        output += '<td>' + productAmount + '<input type="hidden" name="hidden_product_amount[]" id="productAmount'+row_id+'" value="'+productAmount+'"/></td>';
+                        output += '<td><button type="button" name="view_details" class="btn btn-warning btn-xs view_details" id="'+row_id+'" data-bs-toggle="modal" data-bs-target="#product_dialog">View</button></td>';
+                        output += '<td><button type="button" name="remove_details" class="btn btn-danger btn-xs remove_details" id="'+row_id+'">Remove</button></td>';
+                        $('#row_'+row_id+'').html(output);
+                        console.log('Update = ',row_id);
+                    }
+                    $('.modal').modal('hide');
+                }
             });
 
             $(document).on('click', '.view_details', function(){
+                $('#modalTitle').text('Edit Product');
+
                 console.log('Edit Product')
                 var row_id = $(this).attr("id");
                 var productTitle = $('#productTitle'+row_id+'').val();
@@ -241,6 +287,34 @@
                 else
                 {
                     return false;
+                }
+            });
+
+            $('#product_form').on('submit', function(event){
+                event.preventDefault();
+                var count_data = 0;
+                $('.productTitle').each(function(){
+                    count_data = count_data + 1;
+                });
+                if(count_data > 0)
+                {
+                    var form_data = $(this).serialize();
+                    $.ajax({
+                        url:"/",
+                        method:"POST",
+                        data:form_data,
+                        success:function(data)
+                        {
+                            $('#user_data').find("tr:gt(0)").remove();
+                            $('#action_alert').html('<p>Data Inserted Successfully</p>');
+                            $('#action_alert').dialog('open');
+                        }
+                    })
+                }
+                else
+                {
+                    $('#action_alert').html('<p>Please Add atleast one data</p>');
+                    $('#action_alert').dialog('open');
                 }
             });
         });

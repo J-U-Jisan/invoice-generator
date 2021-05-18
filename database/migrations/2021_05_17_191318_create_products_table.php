@@ -15,6 +15,14 @@ class CreateProductsTable extends Migration
     {
         Schema::create('products', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('customer_id')
+                ->constrained('customers')
+                ->onUpdate('cascade')
+                ->onDelete('cascade');
+            $table->string('productTitle');
+            $table->string('productQuantity')->nullable();
+            $table->string('productUnitPrice')->nullable();
+            $table->string('productAmount');
             $table->timestamps();
         });
     }
