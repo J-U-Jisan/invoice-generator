@@ -24,6 +24,10 @@ class CreateCustomersTable extends Migration
             $table->string('currency');
             $table->string('customerAddress')->nullable();
             $table->string('customerPhone')->nullable();
+            $table->dateTime('deliveryTime')->nullable();
+            $table->float('tax')->nullable();
+            $table->float('discount')->nullable();
+            $table->float('advancePayment')->nullable();
             $table->timestamps();
         });
     }

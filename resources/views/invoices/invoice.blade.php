@@ -9,7 +9,7 @@
         <form action="{{ route('invoice-gen') }}" method="POST" class="row g-3" id="invoice_form">
             @csrf
             <div class="col-md-8">
-                <label for="companyName" class="form-label">Company Name</label>
+                <label for="companyName" class="form-label">Company Name<sup style="color: #f7c6c6;">*</sup></label>
                 <input type="text" name="companyName" class="form-control" id="companyName" placeholder="Enter Company name" required>
             </div>
             <div class="col-md-4">
@@ -25,7 +25,7 @@
                 <input type="email" id="companyEmail" class="form-control" name="companyEmail" placeholder="Enter email">
             </div>
             <div class="col-md-4">
-                <label for="comapnyPhone">Company Phone</label>
+                <label for="comapnyPhone" class="form-label">Company Phone</label>
                 <input type="text" id="companyPhone" class="form-control" name="companyPhone" placeholder="Enter Company Phone Number">
             </div>
             <div class="col-md-8">
@@ -33,11 +33,11 @@
                 <input type="text" name="customerName" class="form-control" id="customerName" placeholder="Enter Customer Name">
             </div>
             <div class="col-6 col-md-2">
-                <label for="date" class="form-label">Date</label>
+                <label for="date" class="form-label">Date<sup style="color: #f7c6c6;">*</sup></label>
                 <input type="date" name="date" class="form-control" id="date" required>
             </div>
             <div class="col-6 col-md-2">
-                <label for="currencyInput" class="form-label">Select Currency</label>
+                <label for="currencyInput" class="form-label">Select Currency<sup style="color: #f7c6c6;">*</sup></label>
                 <input name="currency" class="form-control" list="currencyOptions" id="currencyInput" placeholder="Type to search..." required>
                 <datalist id="currencyOptions">
                     <option value="USD (US$)">
@@ -106,6 +106,40 @@
                     </tbody>
                 </table>
             </div>
+
+            <div class="col-6 col-md-3">
+                <label for="deliveryTime" class="form-label">Delivery Time</label>
+                <input type="datetime-local" name="deliveryTime" class="form-control" id="deliveryTime">
+            </div>
+
+            <div class="col-6 col-md-3">
+                <label for="tax" class="form-label">Tax (In Percentage)</label>
+                <input type="number" name="tax" class="form-control" id="tax" min="0" max="100" placeholder="Enter tax in percentage">
+            </div>
+            <div class="col-6 col-md-3">
+                <label for="discount" class="form-label">Total Discount</label>
+                <input type="number" name="discount" class="form-control" id="discount" min="0" placeholder="Enter total discount">
+                <span id="error_discount" style="color: #f7c6c6;"></span>
+            </div>
+            <div class="col-6 col-md-3">
+                <label for="advancePayment" class="form-label">Advance Payment</label>
+                <input type="number" name="advancePayment" class="form-control" id="advancePayment" min="0" placeholder="Enter advance payment">
+                <span id="error_advance_payment" style="color: #f7c6c6;"></span>
+            </div>
+
+            <div class="col-12 clearfix" id="totalAmount">
+                <span class="bg-secondary col-md-4 p-2 rounded-1 float-end">Total Amount = 0.0</span>
+            </div>
+            <div class="col-12 mt-1 clearfix" id="amountWithTax">
+                <span class="bg-secondary col-md-4 p-2 rounded-1 float-end">Total Amount = 0.0 (Including Tax)</span>
+            </div>
+            <div class="col-12 mt-1 clearfix" id="amountAfterDiscount">
+                <span class="bg-secondary col-md-4 p-2 rounded-1 float-end">Total Amount = 0.0 (After Discount)</span>
+            </div>
+            <div class="col-12 mt-1 clearfix" id="dueAmount">
+                <span class="bg-secondary col-md-4 p-2 rounded-1 float-end">Due Amount = 0.0</span>
+            </div>
+
             <div class="col-12 text-right">
                 <button type="submit" class="btn btn-primary">Generate Invoice</button>
             </div>
@@ -121,7 +155,7 @@
                     </div>
                     <div class="modal-body row g-3">
                         <div class="col-12">
-                            <label for="productTitle">Product Title</label>
+                            <label for="productTitle">Product Title<sup style="color: #f7c6c6;">*</sup></label>
                             <input type="text" name="productTitle" id="productTitle" class="form-control" placeholder="Enter Product Title" required>
                             <span id="error_product_title" style="color: #f7c6c6;"></span>
                         </div>
@@ -134,12 +168,9 @@
                             <input type="text" name="productUnitPrice" id="productUnitPrice" class="form-control" placeholder="Enter Unit Price">
                         </div>
                         <div class="col-md-4">
-                            <label for="productAmount">Amount</label>
-                            <input type="text" name="productAmount" id="productAmount" class="form-control" placeholder="Enter Amount" required>
+                            <label for="productAmount">Amount<sup style="color: #f7c6c6;">*</sup></label>
+                            <input type="number" min="0" name="productAmount" id="productAmount" class="form-control" placeholder="Enter Amount" required>
                             <span id="error_product_amount" style="color: #f7c6c6;"></span>
-                        </div>
-                        <div class="text-center">
-
                         </div>
                     </div>
                     <div class="modal-footer">
@@ -167,8 +198,101 @@
         //Product add-delete
         $(document).ready(function (){
             var count = 0;
+            var amount = 0;
+            var amount_with_tax = 0;
+            var discount = 0;
+            var error_discount = '';
+            var amount_after_discount = 0;
+            var tax = 0;
+            var advancePayment = 0;
+            var due = 0;
+            var error_advance_payment = '';
+
+            $('input[name=tax]').on('change', function(){
+                tax = $('#tax').val();
+
+                amount_with_tax = +amount + +(amount*(tax/100.00));
+                $('#amountWithTax span').text('Total Amount = ' + amount_with_tax + ' (Including Tax)');
+
+                amount_after_discount = amount_with_tax - discount;
+                $('#amountAfterDiscount span').text('Total Amount = ' + amount_after_discount + ' (After Discount)');
+
+                due = amount_after_discount - advancePayment;
+                $('#dueAmount span').text('Due Amount = ' + due);
+            });
+
+            $('input[name=discount]').on('change', function(){
+                discount = $('#discount').val();
+
+                $('#error_discount').text('');
+                $('#discount').css('border-color', '');
+
+
+                amount_with_tax = +amount + +(amount*(tax/100.00));
+                $('#amountWithTax span').text('Total Amount = ' + amount_with_tax + ' (Including Tax)');
+
+                if(discount>amount_with_tax){
+                    error_discount = 'Must be less than final amount';
+                    $('#error_discount').text(error_discount);
+                    $('#discount').css('border-color', '#ff0000');
+                    discount = 0;
+                    return false;
+                }
+                else{
+                    error_discount = '';
+                    $('#error_discount').text(error_discount);
+                    $('#discount').css('border-color', '');
+                }
+
+                amount_after_discount = amount_with_tax - discount;
+                $('#amountAfterDiscount span').text('Total Amount = ' + amount_after_discount + ' (After Discount)');
+
+                due = amount_after_discount - advancePayment;
+                $('#dueAmount span').text('Due Amount = ' + due);
+            });
+
+            $('input[name=advancePayment]').on('change', function(){
+                advancePayment = $('#advancePayment').val();
+
+                $('#error_advance_payment').text('');
+                $('#advancePayment').css('border-color', '');
+
+
+                amount_with_tax = +amount + +(amount*(tax/100.00));
+                $('#amountWithTax span').text('Total Amount = ' + amount_with_tax + ' (Including Tax)');
+
+                amount_after_discount = amount_with_tax - discount;
+                $('#amountAfterDiscount span').text('Total Amount = ' + amount_after_discount + ' (After Discount)');
+
+                if(advancePayment > amount_after_discount){
+                    error_advance_payment = 'Must be less than final amount';
+                    $('#error_advance_payment').text(error_advance_payment);
+                    $('#advancePayment').css('border-color', '#ff0000');
+
+                    advancePayment = 0;
+                    return false;
+                }
+                else{
+                    error_advance_payment = '';
+                    $('#error_advance_payment').text(error_advance_payment);
+                    $('#advancePayment').css('border-color', '');
+                }
+
+                due = amount_after_discount - advancePayment;
+                $('#dueAmount span').text('Due Amount = ' + due);
+            });
+
+            $('#totalAmount').hide();
+            $('#amountWithTax').hide();
+            $('#amountAfterDiscount').hide();
+            $('#dueAmount').hide();
 
             $('.add-product').click(function (){
+               $('#totalAmount').show();
+               $('#amountWithTax').show();
+               $('#amountAfterDiscount').show();
+               $('#dueAmount').show();
+
                console.log('Add Product');
                $('#productTitle').val('');
                $('#error_product_title').text('');
@@ -222,6 +346,7 @@
                     $('#error_product_amount').text(error_product_amount);
                     $('#productAmount').css('border-color', '');
                     productAmount = $('#productAmount').val();
+                    amount= +amount + +productAmount;
                 }
 
                 if(error_product_title != '' || error_product_amount != '')
@@ -255,6 +380,17 @@
                         console.log('Update = ',row_id);
                     }
                     $('.modal').modal('hide');
+
+                    $('#totalAmount span').text('Total Amount = ' + amount);
+
+                    amount_with_tax = +amount + +(amount*(tax/100.00));
+                    $('#amountWithTax span').text('Total Amount = ' + amount_with_tax + ' (Including Tax)');
+
+                    amount_after_discount = amount_with_tax - discount;
+                    $('#amountAfterDiscount span').text('Total Amount = ' + amount_after_discount + ' (After Discount)');
+
+                    due = amount_after_discount - advancePayment;
+                    $('#dueAmount span').text('Due Amount = ' + due);
                 }
             });
 

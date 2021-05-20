@@ -22,7 +22,7 @@ class CreateProductsTable extends Migration
             $table->string('productTitle');
             $table->string('productQuantity')->nullable();
             $table->string('productUnitPrice')->nullable();
-            $table->string('productAmount');
+            $table->float('productAmount');
             $table->timestamps();
         });
     }
