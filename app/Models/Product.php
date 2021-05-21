@@ -6,5 +6,15 @@ use Illuminate\Database\Eloquent\Model;
 
 class Product extends Model
 {
-    //
+    protected $table = 'products';
+    public $timestamps = true;
+
+    protected $fillable = [
+        'productTitle', 'productQuantity', 'productUnitPrice', 'productAmount',
+    ];
+
+    public function customer()
+    {
+        return $this->belongsTo('App\Models\Product');
+    }
 }

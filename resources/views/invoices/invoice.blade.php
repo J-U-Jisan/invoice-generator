@@ -1,12 +1,16 @@
 @extends('layouts.app')
 
 @push('styles')
-    <link rel="stylesheet" href="{{ asset('css/invoice.css') }}">
     <link rel="stylesheet" href="https://code.jquery.com/ui/1.11.1/themes/smoothness/jquery-ui.css" />
+    <style>
+        #companyLogoLevel img{
+            width: 40%;
+        }
+    </style>
 @endpush
 @section('content')
     <div class="mx-5 my-2 px-2 text-white">
-        <form action="{{ route('invoice-gen') }}" method="POST" class="row g-3" id="invoice_form">
+        <form action="{{ route('invoice-gen') }}" method="POST" class="row g-3" id="invoice_form" enctype="multipart/form-data">
             @csrf
             <div class="col-md-8">
                 <label for="companyName" class="form-label">Company Name<sup style="color: #f7c6c6;">*</sup></label>
@@ -423,34 +427,6 @@
                 else
                 {
                     return false;
-                }
-            });
-
-            $('#product_form').on('submit', function(event){
-                event.preventDefault();
-                var count_data = 0;
-                $('.productTitle').each(function(){
-                    count_data = count_data + 1;
-                });
-                if(count_data > 0)
-                {
-                    var form_data = $(this).serialize();
-                    $.ajax({
-                        url:"/",
-                        method:"POST",
-                        data:form_data,
-                        success:function(data)
-                        {
-                            $('#user_data').find("tr:gt(0)").remove();
-                            $('#action_alert').html('<p>Data Inserted Successfully</p>');
-                            $('#action_alert').dialog('open');
-                        }
-                    })
-                }
-                else
-                {
-                    $('#action_alert').html('<p>Please Add atleast one data</p>');
-                    $('#action_alert').dialog('open');
                 }
             });
         });
