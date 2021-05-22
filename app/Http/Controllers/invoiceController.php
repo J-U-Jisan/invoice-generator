@@ -6,7 +6,7 @@ use App\Models\Company;
 use App\Models\Customer;
 use App\Models\Product;
 use App\Models\User;
-use PDF;
+use Barryvdh\DomPDF\Facade as PDF;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -80,6 +80,8 @@ class invoiceController extends Controller
 //        return view('invoices/invoice-gen', compact('company', 'customer'));
 
         $pdf = PDF::loadView('invoices.invoice-gen');
-          return $pdf->download('invoice.pdf');
+        return $pdf->stream('invoice.pdf', array('Attachment' => 0));
+
+        //return view('invoices/invoice-gen');
     }
 }
