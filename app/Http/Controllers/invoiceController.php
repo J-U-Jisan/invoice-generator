@@ -6,10 +6,11 @@ use App\Models\Company;
 use App\Models\Customer;
 use App\Models\Product;
 use App\Models\User;
-use Barryvdh\DomPDF\Facade as PDF;
+use PDF;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use phpDocumentor\Reflection\Types\Null_;
 
 class invoiceController extends Controller
 {
@@ -19,7 +20,7 @@ class invoiceController extends Controller
     }
     public function store(Request $request)
     {
-        $companyLogo = '';
+        $companyLogo = Null;
 
         if($request->hasFile('companyLogo')){
             $companies = Company::where('user_id',Auth::id())->latest()->first();
@@ -31,12 +32,13 @@ class invoiceController extends Controller
 
             $companyLogo = 'companylogo' . $id . '.' . $request->companyLogo->getClientOriginalExtension();
             $request->companyLogo->storeAs('/public/companylogo', $companyLogo);
+            $companyLogo = '/storage/companylogo/' . $companyLogo;
         }
 
         $company = new Company();
         $company->companyName = $request->companyName;
         $company->user_id = Auth::id();
-        $company->companyLogo = '/storage/companylogo/' . $companyLogo;
+        $company->companyLogo =  $companyLogo;
         $company->companyAddress = $request->companyAddress;
         $company->companyEmail = $request->companyEmail;
         $company->companyPhone = $request->companyPhone;
@@ -47,6 +49,7 @@ class invoiceController extends Controller
         $customer->customerName = $request->customerName;
         $customer->company_id = $company->id;
         $customer->date  = $request->date;
+        $customer->currencyPosition = $request->currencyPosition;
         $customer->currency = $request->currency;
         $customer->customerAddress = $request->customerAddress;
         $customer->customerPhone = $request->customerPhone;
@@ -71,17 +74,30 @@ class invoiceController extends Controller
             $product->save();
         }
 
-        return redirect(route('invoice-gen'))->with(['company' => $company, 'customer' => $customer]);
+        return redirect(route('invoice-gen',['cid'=>$company->id, 'cuid'=>$customer_id]));
     }
-    public function show()
+    public function show($cid, $cuid)
     {
-//        $company = session()->get('company');
-//        $customer = session()->get('customer');
-//        return view('invoices/invoice-gen', compact('company', 'customer'));
+        $company = Company::where('id',$cid)->first();
+        $customer = Customer::where('id',$cuid)->first();
+        $products = Product::where('customer_id', $customer->id)->get();
 
-        $pdf = PDF::loadView('invoices.invoice-gen');
-        return $pdf->stream('invoice.pdf', array('Attachment' => 0));
+        $len = strlen($customer->currency)-1;
+        $currency = '';
+        $flag = false;
+        for($i=0 ; $i<$len ; $i++){
+            if($flag)
+                $currency .= $customer->currency[$i];
 
-        //return view('invoices/invoice-gen');
+            if($customer->currency[$i]=='('){
+                $flag =true;
+            }
+        }
+
+        $pdf = PDF::loadView('invoices.invoice-gen', compact('company', 'customer', 'products', 'currency'));
+        return $pdf->stream('invoice' . $customer->id . '.pdf');
+
+
+        //return view('invoices/invoice-gen', compact('company', 'customer', 'products'));
     }
 }

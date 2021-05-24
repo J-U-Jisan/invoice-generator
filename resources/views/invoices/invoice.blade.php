@@ -10,7 +10,7 @@
 @endpush
 @section('content')
     <div class="mx-5 my-2 px-2 text-white">
-        <form action="{{ route('invoice-gen') }}" method="POST" class="row g-3" id="invoice_form" enctype="multipart/form-data">
+        <form action="{{ route('invoice') }}" method="POST" class="row g-3" id="invoice_form" enctype="multipart/form-data" target="_blank">
             @csrf
             <div class="col-md-8">
                 <label for="companyName" class="form-label">Company Name<sup style="color: #f7c6c6;">*</sup></label>
@@ -36,15 +36,12 @@
                 <label for="customerName" class="form-label">Customer Name</label>
                 <input type="text" name="customerName" class="form-control" id="customerName" placeholder="Enter Customer Name">
             </div>
-            <div class="col-6 col-md-2">
-                <label for="date" class="form-label">Date<sup style="color: #f7c6c6;">*</sup></label>
-                <input type="date" name="date" class="form-control" id="date" required>
-            </div>
+
             <div class="col-6 col-md-2">
                 <label for="currencyInput" class="form-label">Select Currency<sup style="color: #f7c6c6;">*</sup></label>
                 <input name="currency" class="form-control" list="currencyOptions" id="currencyInput" placeholder="Type to search..." required>
                 <datalist id="currencyOptions">
-                    <option value="USD (US$)">
+                    <option value="USD ($)">
                     <option value="EUR (€)">
                     <option value="JPY (¥)">
                     <option value="BDT (৳)">
@@ -81,13 +78,26 @@
                     <option value="RON (L)">
                 </datalist>
             </div>
-            <div class="col-md-8">
+            <div class=" col-6 col-md-2">
+                <label class="form-check-label" for="currencyPosition">Currency Position<sup style="color: #f7c6c6;">*</sup></label>
+                <div class="form-group mt-3" id="currecnyPosition">
+                    <input type="radio" class="form-check-input" name="currencyPosition" value="left" id="currecnyPositionLeft" required>
+                    <label for="currecnyPositionLeft" class="form-check-label">Left</label>
+                    <input type="radio" class="form-check-input" style="margin-left: 15px;" name="currencyPosition" value="right" id="currencyPositionRight" required>
+                    <label for="currencyPositionRight" class="form-check-label">Right</label>
+                </div>
+            </div>
+            <div class="col-md-7">
                 <label for="customerAddress" class="form-label">Customer Address</label>
                 <input type="text" name="customerAddress" class="form-control" id="customerAddress" placeholder="Enter Customer Address">
             </div>
-            <div class="col-md-4">
+            <div class="col-md-3">
                 <label for="customerPhone" class="form-label">Customer Phone</label>
                 <input type="number" name="customerPhone" class="form-control" min="0" id="customerPhone" placeholder="Enter Customer Phone Number">
+            </div>
+            <div class="col-6 col-md-2">
+                <label for="date" class="form-label">Date<sup style="color: #f7c6c6;">*</sup></label>
+                <input type="date" name="date" class="form-control" id="date" required>
             </div>
 
             <div class="col-12 mt-5">
@@ -113,17 +123,17 @@
 
             <div class="col-6 col-md-3">
                 <label for="deliveryTime" class="form-label">Delivery Time</label>
-                <input type="datetime-local" name="deliveryTime" class="form-control" id="deliveryTime">
+                <input type="datetime" name="deliveryTime" class="form-control" id="deliveryTime">
             </div>
 
-            <div class="col-6 col-md-3">
-                <label for="tax" class="form-label">Tax (In Percentage)</label>
-                <input type="number" name="tax" class="form-control" id="tax" min="0" max="100" placeholder="Enter tax in percentage">
-            </div>
             <div class="col-6 col-md-3">
                 <label for="discount" class="form-label">Total Discount</label>
                 <input type="number" name="discount" class="form-control" id="discount" min="0" placeholder="Enter total discount">
                 <span id="error_discount" style="color: #f7c6c6;"></span>
+            </div>
+            <div class="col-6 col-md-3">
+                <label for="tax" class="form-label">Tax (In Percentage)</label>
+                <input type="number" name="tax" class="form-control" id="tax" min="0" max="100" placeholder="Enter tax in percentage">
             </div>
             <div class="col-6 col-md-3">
                 <label for="advancePayment" class="form-label">Advance Payment</label>
@@ -134,18 +144,18 @@
             <div class="col-12 clearfix" id="totalAmount">
                 <span class="bg-secondary col-md-4 p-2 rounded-1 float-end">Total Amount = 0.0</span>
             </div>
-            <div class="col-12 mt-1 clearfix" id="amountWithTax">
-                <span class="bg-secondary col-md-4 p-2 rounded-1 float-end">Total Amount = 0.0 (Including Tax)</span>
-            </div>
             <div class="col-12 mt-1 clearfix" id="amountAfterDiscount">
                 <span class="bg-secondary col-md-4 p-2 rounded-1 float-end">Total Amount = 0.0 (After Discount)</span>
+            </div>
+            <div class="col-12 mt-1 clearfix" id="amountWithTax">
+                <span class="bg-secondary col-md-4 p-2 rounded-1 float-end">Total Amount = 0.0 (Including Tax)</span>
             </div>
             <div class="col-12 mt-1 clearfix" id="dueAmount">
                 <span class="bg-secondary col-md-4 p-2 rounded-1 float-end">Due Amount = 0.0</span>
             </div>
 
             <div class="col-12 text-right">
-                <button type="submit" class="btn btn-primary">Generate Invoice</button>
+                <button type="submit" class="btn btn-primary" id="submit">Generate Invoice</button>
             </div>
         </form>
 
@@ -215,13 +225,13 @@
             $('input[name=tax]').on('change', function(){
                 tax = $('#tax').val();
 
-                amount_with_tax = +amount + +(amount*(tax/100.00));
-                $('#amountWithTax span').text('Total Amount = ' + amount_with_tax + ' (Including Tax)');
-
-                amount_after_discount = amount_with_tax - discount;
+                amount_after_discount = amount - discount;
                 $('#amountAfterDiscount span').text('Total Amount = ' + amount_after_discount + ' (After Discount)');
 
-                due = amount_after_discount - advancePayment;
+                amount_with_tax = amount_after_discount + (amount_after_discount*(tax/100.00));
+                $('#amountWithTax span').text('Total Amount = ' + amount_with_tax + ' (Including Tax)');
+
+                due = amount_with_tax - advancePayment;
                 $('#dueAmount span').text('Due Amount = ' + due);
             });
 
@@ -231,11 +241,7 @@
                 $('#error_discount').text('');
                 $('#discount').css('border-color', '');
 
-
-                amount_with_tax = +amount + +(amount*(tax/100.00));
-                $('#amountWithTax span').text('Total Amount = ' + amount_with_tax + ' (Including Tax)');
-
-                if(discount>amount_with_tax){
+                if(discount>amount){
                     error_discount = 'Must be less than final amount';
                     $('#error_discount').text(error_discount);
                     $('#discount').css('border-color', '#ff0000');
@@ -248,10 +254,13 @@
                     $('#discount').css('border-color', '');
                 }
 
-                amount_after_discount = amount_with_tax - discount;
+                amount_after_discount = amount - discount;
                 $('#amountAfterDiscount span').text('Total Amount = ' + amount_after_discount + ' (After Discount)');
 
-                due = amount_after_discount - advancePayment;
+                amount_with_tax = amount_after_discount + (amount_after_discount*(tax/100.00));
+                $('#amountWithTax span').text('Total Amount = ' + amount_with_tax + ' (Including Tax)');
+
+                due = amount_with_tax - advancePayment;
                 $('#dueAmount span').text('Due Amount = ' + due);
             });
 
@@ -261,14 +270,13 @@
                 $('#error_advance_payment').text('');
                 $('#advancePayment').css('border-color', '');
 
-
-                amount_with_tax = +amount + +(amount*(tax/100.00));
-                $('#amountWithTax span').text('Total Amount = ' + amount_with_tax + ' (Including Tax)');
-
-                amount_after_discount = amount_with_tax - discount;
+                amount_after_discount = amount - discount;
                 $('#amountAfterDiscount span').text('Total Amount = ' + amount_after_discount + ' (After Discount)');
 
-                if(advancePayment > amount_after_discount){
+                amount_with_tax = amount_after_discount + (amount_after_discount*(tax/100.00));
+                $('#amountWithTax span').text('Total Amount = ' + amount_with_tax + ' (Including Tax)');
+
+                if(advancePayment > amount_with_tax){
                     error_advance_payment = 'Must be less than final amount';
                     $('#error_advance_payment').text(error_advance_payment);
                     $('#advancePayment').css('border-color', '#ff0000');
@@ -282,7 +290,7 @@
                     $('#advancePayment').css('border-color', '');
                 }
 
-                due = amount_after_discount - advancePayment;
+                due = amount_with_tax - advancePayment;
                 $('#dueAmount span').text('Due Amount = ' + due);
             });
 
@@ -290,6 +298,8 @@
             $('#amountWithTax').hide();
             $('#amountAfterDiscount').hide();
             $('#dueAmount').hide();
+            //disable the submit button
+            $("#submit").attr("disabled", true);
 
             $('.add-product').click(function (){
                $('#totalAmount').show();
@@ -317,6 +327,9 @@
                var productQuantity = '';
                var productUnitPrice = '';
                var productAmount = '';
+
+                //enable the submit button
+                $("#submit").attr("disabled", false);
 
                productQuantity = $('#productQuantity').val();
 
