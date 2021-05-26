@@ -181,7 +181,7 @@
         <div>
             <p><strong>Delivery Date: </strong>
                 @isset($customer->deliveryTime)
-                    {{ date('d-m-Y', strtotime($customer->deliveryTime)) }}</p>
+                    {{ date('d-m-Y', strtotime($customer->deliveryDate)) }}</p>
                 @endisset
             <p><strong>Delivery Time: </strong>
                 @isset($customer->deliveryTime)

@@ -53,6 +53,7 @@ class invoiceController extends Controller
         $customer->currency = $request->currency;
         $customer->customerAddress = $request->customerAddress;
         $customer->customerPhone = $request->customerPhone;
+        $customer->deliveryDate = $request->deliveryDate;
         $customer->deliveryTime = $request->deliveryTime;
         $customer->tax = $request->tax;
         $customer->discount = $request->discount;

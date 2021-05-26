@@ -10,7 +10,7 @@
 @endpush
 @section('content')
     <div class="mx-5 my-2 px-2 text-white">
-        <form action="{{ route('invoice') }}" method="POST" class="row g-3" id="invoice_form" enctype="multipart/form-data" target="_blank">
+        <form action="{{ route('invoice') }}" method="POST" class="row g-3" id="invoice_form" enctype="multipart/form-data">
             @csrf
             <div class="col-md-8">
                 <label for="companyName" class="form-label">Company Name<sup style="color: #f7c6c6;">*</sup></label>
@@ -121,12 +121,15 @@
                 </table>
             </div>
 
-            <div class="col-6 col-md-3">
-                <label for="deliveryTime" class="form-label">Delivery Time</label>
-                <input type="datetime" name="deliveryTime" class="form-control" id="deliveryTime">
+            <div class="col-6 col-md-2">
+                <label for="deliveryDate" class="form-label">Delivery Date</label>
+                <input type="date" name="deliveryDate" class="form-control" id="deliveryDate">
             </div>
-
-            <div class="col-6 col-md-3">
+            <div class="col-6 col-md-2">
+                <label for="deliveryTime" class="form-label">Delivery Time</label>
+                <input type="time" name="deliveryTime" class="form-control" id="deliveryTime">
+            </div>
+            <div class="col-6 col-md-2">
                 <label for="discount" class="form-label">Total Discount</label>
                 <input type="number" name="discount" class="form-control" id="discount" min="0" placeholder="Enter total discount">
                 <span id="error_discount" style="color: #f7c6c6;"></span>
