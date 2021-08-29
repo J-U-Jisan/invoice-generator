@@ -7,18 +7,19 @@
     <!-- CSRF Token -->
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <link rel="shortcut icon" href="{{ asset('images/logo.jpg') }}">
-    <title>Invoice Generator</title>
+    <title>@yield('title')Invoice Generator</title>
 
     <!-- Scripts -->
- <!--   <script src="{{ asset('js/app.js') }}" defer></script> -->
+{{-- <!--   <script src="{{ asset('js/app.js') }}" defer></script> -->--}}
     <script src="{{ asset('js/bootstrap.bundle.min.js') }}" crossorigin="anonymous"></script>
     <script src="https://kit.fontawesome.com/e51e6bd8e6.js" crossorigin="anonymous"></script>
     <!-- Fonts -->
     <link href="https://fonts.googleapis.com/css?family=Aclonica" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css?family=Nunito" rel="stylesheet">
+    <script type="text/javascript" src="{{ asset('ckeditor/ckeditor.js') }}"></script>
 
     <!-- Styles -->
-<!--    <link href="{{ asset('css/app.css') }}" rel="stylesheet"> -->
+{{--<!--    <link href="{{ asset('css/app.css') }}" rel="stylesheet"> -->--}}
     <link href="{{ asset('css/style.css') }}" rel="stylesheet">
     <link href="{{ asset('css/bootstrap.min.css') }}" rel="stylesheet"  crossorigin="anonymous">
     @stack('styles')
@@ -50,7 +51,8 @@
 
                     <ul class="dropdown-menu" aria-labelledby="dropdownMenuLink">
                         <li><a class="dropdown-item" href="{{ route('profile') }}">Profile</a></li>
-                        <li><a class="dropdown-item" href="dashboard">Dashboard</a></li>
+                        <li><a class="dropdown-item" href="{{ route('dashboard-invoice') }}">Invoice Dashboard</a></li>
+                        <li><a class="dropdown-item" href="{{ route('dashboard-salary-management') }}">Salary Management Dashboard</a></li>
                         <li>
                             <a class="dropdown-item" href="{{ route('logout') }}"
                                onclick="event.preventDefault();

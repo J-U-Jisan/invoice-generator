@@ -16,39 +16,34 @@ class invoiceController extends Controller
 {
     public function index()
     {
+        $company = Company::where('user_id',Auth::id())->first();
+
+        if(!isset($company))
+            return redirect(route('profile'))->with('companyInformation', 'Please first add information about your company');
+
         return view('invoices.invoice');
     }
     public function store(Request $request)
     {
-        $companyLogo = Null;
+        $signature = Null;
 
-        if($request->hasFile('companyLogo')){
-            $companies = Company::where('user_id',Auth::id())->latest()->first();
+        if($request->hasFile('signature')){
+            $customer = Customer::where('user_id',Auth::id())->latest()->first();
 
-            if(isset($companies)){
-                $id = $companies->id;
+            if(isset($customer)){
+                $id = $customer->id;
             }
             $id = ($id ?? 0) + 1;
 
-            $companyLogo = 'companylogo' . $id . '.' . $request->companyLogo->getClientOriginalExtension();
-            $request->companyLogo->storeAs('/public/companylogo', $companyLogo);
-            $companyLogo = '/storage/companylogo/' . $companyLogo;
+            $signature = 'signature' . $id . '.' . $request->signature->getClientOriginalExtension();
+            $request->signature->storeAs('/public/signature', $signature);
+            $signature = '/storage/signature/' . $signature;
         }
-
-        $company = new Company();
-        $company->companyName = $request->companyName;
-        $company->user_id = Auth::id();
-        $company->companyLogo =  $companyLogo;
-        $company->companyAddress = $request->companyAddress;
-        $company->companyEmail = $request->companyEmail;
-        $company->companyPhone = $request->companyPhone;
-
-        $company->save();
 
         $customer = new Customer();
         $customer->customerName = $request->customerName;
-        $customer->company_id = $company->id;
-        $customer->date  = $request->date;
+        $customer->user_id = Auth::id();
+        $customer->date  = $request->date ?? now()->toDate();
         $customer->currencyPosition = $request->currencyPosition;
         $customer->currency = $request->currency;
         $customer->customerAddress = $request->customerAddress;
@@ -58,6 +53,12 @@ class invoiceController extends Controller
         $customer->tax = $request->tax;
         $customer->discount = $request->discount;
         $customer->advancePayment = $request->advancePayment;
+        $customer->subject = $request->subject;
+        $customer->termsAndConditions = $request->termsAndConditions;
+        $customer->lastMessage = $request->lastMessage;
+        $customer->signature = $signature;
+        $customer->regardsName = $request->regardsName;
+        $customer->regardsTitle = $request->regardsTitle;
 
         $customer->save();
 
@@ -69,36 +70,45 @@ class invoiceController extends Controller
             $product->customer_id = $customer_id;
             $product->productTitle = $request->hidden_product_title[$idx];
             $product->productQuantity = $request->hidden_product_quantity[$idx];
+            $product->productUnit = $request->hidden_product_unit[$idx];
             $product->productUnitPrice = $request->hidden_product_unit_price[$idx];
             $product->productAmount = $request->hidden_product_amount[$idx];
 
             $product->save();
         }
 
-        return redirect(route('invoice-gen',['cid'=>$company->id, 'cuid'=>$customer_id]));
+        return redirect(route('invoice-gen',['cuid'=>$customer_id]));
     }
-    public function show($cid, $cuid)
+    public function show($cuid)
     {
-        $company = Company::where('id',$cid)->first();
+        $company = Company::where('user_id',Auth::id())->first();
         $customer = Customer::where('id',$cuid)->first();
         $products = Product::where('customer_id', $customer->id)->get();
 
         $len = strlen($customer->currency)-1;
-        $currency = '';
+        $currency = ['', ''];
+
         $flag = false;
         for($i=0 ; $i<$len ; $i++){
             if($flag)
-                $currency .= $customer->currency[$i];
+                $currency[1] .= $customer->currency[$i];
 
             if($customer->currency[$i]=='('){
                 $flag =true;
             }
+            else if(!$flag){
+                $currency[0] .= $customer->currency[$i];
+            }
         }
+        $header = \view('invoices.invoice-header',  compact('company','customer'))->render();
+        $footer = \view('invoices.invoice-footer')->render();
 
         $pdf = PDF::loadView('invoices.invoice-gen', compact('company', 'customer', 'products', 'currency'));
-        return $pdf->stream('invoice' . $customer->id . '.pdf');
+        $pdf->setOption('header-html', $header);
+        $pdf->setOption('footer-html', $footer);
+        $pdf->setOption('margin-bottom', 18);
+        return $pdf->setPaper('a4')->inline("'invoice' . $customer->id . '.pdf'");
 
-
-        //return view('invoices/invoice-gen', compact('company', 'customer', 'products'));
+        //return view('invoices/invoice-gen', compact('company', 'customer', 'products', 'currency'));
     }
 }

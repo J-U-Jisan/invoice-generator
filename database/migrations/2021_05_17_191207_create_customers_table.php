@@ -15,8 +15,8 @@ class CreateCustomersTable extends Migration
     {
         Schema::create('customers', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('company_id')
-                ->constrained('companies')
+            $table->foreignId('user_id')
+                ->constrained('users')
                 ->onUpdate('cascade')
                 ->onDelete('cascade');
             $table->string('customerName')->nullable();
@@ -30,6 +30,12 @@ class CreateCustomersTable extends Migration
             $table->float('tax')->nullable();
             $table->float('discount')->nullable();
             $table->float('advancePayment')->nullable();
+            $table->text('subject')->nullable();
+            $table->text('termsAndConditions')->nullable();
+            $table->text('lastMessage')->nullable();
+            $table->text('signature')->nullable();
+            $table->string('regardsName')->nullable();
+            $table->string('regardsTitle')->nullable();
             $table->timestamps();
         });
     }
